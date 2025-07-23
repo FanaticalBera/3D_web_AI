@@ -711,10 +711,11 @@ function generateQRCode() {
       heightLength: (hei && len) ? ((hei / len) * 100).toFixed(1) + '%' : 'N/A'
     },
     analysis: getFootTypeAnalysis(),
-    recommendations: getRecommendations(
-      (len && wid) ? len / wid : 2.4,
-      (hei && len) ? hei / len : 0.2
-    )
+    recommendations: "standard"
+    // recommendations: getRecommendations(
+    //   (len && wid) ? len / wid : 2.4,
+    //   (hei && len) ? hei / len : 0.2
+    // )
   };
 
   // 4) 데이터 인코딩
@@ -738,7 +739,7 @@ function generateQRCode() {
     height: 256,
     colorDark: '#000000',
     colorLight: '#ffffff',
-    correctLevel: window.QRCode.CorrectLevel.H
+    correctLevel: window.QRCode.CorrectLevel.M
   });
 
   // 7) UI 복구 & 메시지
