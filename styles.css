@@ -1,0 +1,236 @@
+/* 3D 발 분석기 - 커스텀 스타일 */
+
+/* 기본 폰트 및 레이아웃 */
+body {
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    overflow: hidden;
+}
+
+/* 3D 캔버스 컨테이너 */
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* UI 컨테이너 - 포인터 이벤트 관리 */
+#ui-container {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#ui-container button, 
+#ui-container a, 
+#ui-container input, 
+#ui-container div[class*="pointer-events-auto"] {
+    pointer-events: auto;
+}
+
+/* 드래그 앤 드롭 시각적 피드백 */
+.drag-over {
+    background-color: rgba(59, 130, 246, 0.3);
+    border: 2px dashed #3B82F6;
+    transition: all 0.3s ease;
+}
+
+/* 컬러 피커 커스텀 스타일 */
+input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 2.5rem;
+    height: 2rem;
+    padding: 0.25rem;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.375rem;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid #4B5563;
+    border-radius: 0.375rem;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: 1px solid #4B5563;
+    border-radius: 0.375rem;
+}
+
+/* 측정선 관련 스타일 */
+.measurement-line {
+    pointer-events: none;
+}
+
+/* 버튼 호버 효과 개선 */
+.view-btn:hover,
+.standard-view-btn:hover,
+.measure-view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 활성 상태 버튼 */
+.view-btn.active {
+    background-color: #3B82F6;
+    color: white;
+}
+
+.camera-btn.active {
+    background-color: #3B82F6;
+    color: white;
+}
+
+/* 로딩 애니메이션 */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #4B5563;
+    border-radius: 50%;
+    border-top-color: #3B82F6;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 펄스 애니메이션 */
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* 측정 데이터 강조 효과 */
+.measurement-highlight {
+    animation: highlight 0.6s ease-in-out 3;
+}
+
+@keyframes highlight {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* 웰컴 스크린 배경 */
+#welcome-screen {
+    background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+}
+
+/* 컨트롤 패널 반투명 효과 */
+#control-panel {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* 스크롤바 커스터마이징 */
+.w-2\/5::-webkit-scrollbar {
+    width: 6px;
+}
+
+.w-2\/5::-webkit-scrollbar-track {
+    background: #374151;
+    border-radius: 3px;
+}
+
+.w-2\/5::-webkit-scrollbar-thumb {
+    background: #6B7280;
+    border-radius: 3px;
+}
+
+.w-2\/5::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+    #dashboard-screen {
+        flex-direction: column;
+    }
+    
+    .w-3\/5, .w-2\/5 {
+        width: 100% !important;
+        height: 50% !important;
+    }
+    
+    #control-panel {
+        width: 200px;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 768px) {
+    #control-panel {
+        position: relative;
+        width: 100%;
+        margin: 1rem;
+        left: 0;
+        top: 0;
+    }
+    
+    .grid-cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 접근성 개선 */
+button:focus,
+input:focus {
+    outline: 2px solid #3B82F6;
+    outline-offset: 2px;
+}
+
+/* 다크모드 최적화 */
+@media (prefers-color-scheme: dark) {
+    body {
+        color-scheme: dark;
+    }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+    .bg-gray-700 {
+        background-color: #000000;
+        border: 1px solid #FFFFFF;
+    }
+    
+    .text-gray-300 {
+        color: #FFFFFF;
+    }
+}
+
+/* 인쇄 최적화 */
+@media print {
+    #control-panel {
+        display: none;
+    }
+    
+    #dashboard-screen {
+        height: auto;
+    }
+    
+    .bg-gray-900,
+    .bg-gray-800 {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+}

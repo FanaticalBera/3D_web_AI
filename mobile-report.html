@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>발 분석 리포트 - 모바일</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .measurement-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .analysis-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                font-size: 12px !important;
+            }
+            
+            .card-shadow {
+                box-shadow: none !important;
+                border: 1px solid #e5e7eb !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 로딩 화면 -->
+    <div id="loading-screen" class="fixed inset-0 gradient-bg flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+            <h2 class="text-xl font-semibold">리포트 로딩 중...</h2>
+            <p class="mt-2 opacity-80">데이터를 분석하고 있습니다</p>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div id="main-content" class="hidden">
+        <!-- 헤더 -->
+        <header class="gradient-bg text-white py-6 px-4">
+            <div class="container mx-auto text-center">
+                <h1 class="text-3xl font-bold mb-2">👣 3D 발 분석 리포트</h1>
+                <p class="opacity-90" id="analysis-date">분석 완료</p>
+            </div>
+        </header>
+
+        <!-- 콘텐츠 영역 -->
+        <div class="container mx-auto p-4 -mt-4">
+            <!-- 파일 정보 카드 -->
+            <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">파일 정보</h2>
+                        <p class="text-gray-600">업로드된 3D 모델 정보</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span class="text-gray-600">파일명</span>
+                        <span class="font-semibold text-gray-800" id="file-name">-</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-gray-600">분석 완료</span>
+                        <span class="font-semibold text-gray-800" id="analysis-time">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 측정 데이터 카드 -->
+            <div class="measurement-card rounded-xl card-shadow p-6 mb-6 text-white">
+                <div class="flex items-center mb-4">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">정밀 측정 데이터</h2>
+                        <p class="opacity-90">3D 스캔 기반 정확한 측정 결과</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm opacity-90">👣 발 길이 (족장)</span>
+                            <span class="text-2xl font-bold" id="foot-length">- mm</span>
+                        </div>
+                        <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                            <div class="bg-white h-2 rounded-full transition-all duration-1000" id="length-bar"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm opacity-90">↔️ 발볼 너비 (족폭)</span>
+                            <span class="text-2xl font-bold" id="foot-width">- mm</span>
+                        </div>
+                        <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                            <div class="bg-white h-2 rounded-full transition-all duration-1000" id="width-bar"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm opacity-90">↕️ 발등 높이</span>
+                            <span class="text-2xl font-bold" id="foot-height">- mm</span>
+                        </div>
+                        <div class="w-full bg-white bg-opacity-20 rounded-full h-2">
+                            <div class="bg-white h-2 rounded-full transition-all duration-1000" id="height-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-white bg-opacity-10 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm opacity-90">측정 신뢰도</span>
+                        <span class="font-semibold" id="confidence-level">높음</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비율 분석 카드 -->
+            <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">비율 분석</h2>
+                        <p class="text-gray-600">발의 균형과 비례 분석</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="length-width-ratio">2.4</div>
+                        <div class="text-sm text-gray-600">길이/너비 비율</div>
+                    </div>
+                    <div class="text-center p-4 bg-gray-50 rounded-lg">
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="height-length-ratio">20%</div>
+                        <div class="text-sm text-gray-600">높이/길이 비율</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 발 유형 분석 카드 -->
+            <div class="analysis-card rounded-xl card-shadow p-6 mb-6 text-white">
+                <div class="flex items-center mb-4">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">발 유형 종합 분석</h2>
+                        <p class="opacity-90">AI 기반 맞춤형 발 유형 분석</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm opacity-90">발 형태</span>
+                            <span class="font-bold text-lg" id="foot-type">표준형</span>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm opacity-90">아치 유형</span>
+                            <span class="font-bold text-lg" id="arch-type">정상 아치</span>
+                        </div>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                        <p class="text-sm opacity-90 mb-2">특징</p>
+                        <p id="foot-description">균형잡힌 비례를 가진 표준적인 발 형태입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 추천 사항 카드 -->
+            <div class="recommendation-card rounded-xl card-shadow p-6 mb-6 text-white">
+                <div class="flex items-center mb-4">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">맞춤형 신발 추천</h2>
+                        <p class="opacity-90">발 유형에 따른 전문가 추천사항</p>
+                    </div>
+                </div>
+                <div id="recommendations-list" class="space-y-3">
+                    <!-- 추천사항이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 액션 버튼 -->
+            <div class="no-print space-y-3 mb-8">
+                <button onclick="downloadPDF()" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    📄 PDF 다운로드
+                </button>
+                <button onclick="shareReport()" class="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                    </svg>
+                    📱 리포트 공유
+                </button>
+                <button onclick="window.print()" class="w-full bg-gradient-to-r from-gray-500 to-gray-600 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    🖨️ 인쇄하기
+                </button>
+            </div>
+
+            <!-- 푸터 -->
+            <footer class="text-center text-gray-500 text-sm py-6 border-t">
+                <p>© 2024 3D 발 분석기 | 정밀 측정 시스템</p>
+                <p class="mt-1">이 리포트는 3D 스캔 데이터를 기반으로 생성되었습니다.</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- jsPDF 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        let reportData = null;
+
+        // 페이지 로드시 실행
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReportData();
+        });
+
+        function loadReportData() {
+            // URL 파라미터에서 데이터 추출
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    const jsonData = decodeURIComponent(escape(atob(encodedData)));
+                    reportData = JSON.parse(jsonData);
+                    displayReport(reportData);
+                } catch (error) {
+                    console.error('리포트 데이터 로드 실패:', error);
+                    showError('리포트 데이터를 불러올 수 없습니다.');
+                }
+            } else {
+                showError('리포트 데이터가 없습니다. QR 코드를 다시 스캔해주세요.');
+            }
+        }
+
+        function displayReport(data) {
+            setTimeout(() => {
+                // 로딩 화면 숨기기
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+
+                // 파일 정보 표시
+                document.getElementById('file-name').textContent = data.fileName || 'Unknown';
+                document.getElementById('analysis-time').textContent = new Date(data.analysisDate).toLocaleString('ko-KR');
+                document.getElementById('analysis-date').textContent = 
+                    `${new Date(data.analysisDate).toLocaleDateString('ko-KR')} 분석 완료`;
+
+                // 측정 데이터 표시
+                const measurements = data.measurements;
+                document.getElementById('foot-length').textContent = `${measurements.length} ${measurements.unit}`;
+                document.getElementById('foot-width').textContent = `${measurements.width} ${measurements.unit}`;
+                document.getElementById('foot-height').textContent = `${measurements.height} ${measurements.unit}`;
+                document.getElementById('confidence-level').textContent = measurements.confidence;
+
+                // 측정 바 애니메이션
+                animateMeasurementBars(measurements);
+
+                // 비율 분석 표시
+                document.getElementById('length-width-ratio').textContent = data.ratios.lengthWidth;
+                document.getElementById('height-length-ratio').textContent = data.ratios.heightLength;
+
+                // 발 유형 분석 표시
+                const analysis = data.analysis;
+                document.getElementById('foot-type').textContent = analysis.footType;
+                document.getElementById('arch-type').textContent = analysis.archType;
+                document.getElementById('foot-description').textContent = analysis.description;
+
+                // 추천사항 표시
+                displayRecommendations(data.recommendations);
+
+            }, 1500); // 1.5초 로딩 시간
+        }
+
+        function animateMeasurementBars(measurements) {
+            // 최대값을 기준으로 바 길이 계산
+            const maxLength = Math.max(
+                parseFloat(measurements.length) || 0,
+                parseFloat(measurements.width) || 0,
+                parseFloat(measurements.height) || 0
+            );
+
+            setTimeout(() => {
+                const lengthPercent = (parseFloat(measurements.length) / maxLength) * 100;
+                const widthPercent = (parseFloat(measurements.width) / maxLength) * 100;
+                const heightPercent = (parseFloat(measurements.height) / maxLength) * 100;
+
+                document.getElementById('length-bar').style.width = `${lengthPercent}%`;
+                document.getElementById('width-bar').style.width = `${widthPercent}%`;
+                document.getElementById('height-bar').style.width = `${heightPercent}%`;
+            }, 500);
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            container.innerHTML = '';
+
+            recommendations.forEach((rec, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white bg-opacity-10 rounded-lg p-4 transform transition-all duration-500';
+                div.style.animationDelay = `${index * 200}ms`;
+                div.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="bg-white bg-opacity-20 rounded-full p-2 mr-3 mt-1">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm leading-relaxed">${rec}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('main-content').innerHTML = `
+                <div class="container mx-auto p-4 text-center">
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                        <h2 class="text-xl font-bold mb-2">오류 발생</h2>
+                        <p>${message}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('main-content').classList.remove('hidden');
+        }
+
+        function downloadPDF() {
+            if (!reportData) {
+                alert('리포트 데이터를 찾을 수 없습니다.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // PDF 생성
+            doc.setFont('helvetica');
+            
+            // 제목
+            doc.setFontSize(20);
+            doc.text('3D Foot Analysis Report', 20, 30);
+            
+            // 파일 정보
+            doc.setFontSize(12);
+            doc.text(`File: ${reportData.fileName}`, 20, 50);
+            doc.text(`Analysis Date: ${new Date(reportData.analysisDate).toLocaleDateString('ko-KR')}`, 20, 60);
+            
+            // 측정 데이터
+            doc.setFontSize(16);
+            doc.text('Measurement Data', 20, 80);
+            
+            doc.setFontSize(12);
+            const measurements = [
+                `Foot Length: ${reportData.measurements.length} ${reportData.measurements.unit}`,
+                `Foot Width: ${reportData.measurements.width} ${reportData.measurements.unit}`,
+                `Foot Height: ${reportData.measurements.height} ${reportData.measurements.unit}`,
+                `Confidence: ${reportData.measurements.confidence}`
+            ];
+            
+            let yPos = 100;
+            measurements.forEach(measurement => {
+                doc.text(measurement, 20, yPos);
+                yPos += 15;
+            });
+            
+            // 비율 분석
+            doc.setFontSize(16);
+            doc.text('Ratio Analysis', 20, yPos + 10);
+            yPos += 30;
+            
+            doc.setFontSize(12);
+            doc.text(`Length/Width Ratio: ${reportData.ratios.lengthWidth}`, 20, yPos);
+            doc.text(`Height/Length Ratio: ${reportData.ratios.heightLength}`, 20, yPos + 15);
+            yPos += 40;
+            
+            // 발 유형 분석
+            doc.setFontSize(16);
+            doc.text('Foot Type Analysis', 20, yPos);
+            yPos += 20;
+            
+            doc.setFontSize(12);
+            doc.text(`Foot Shape: ${reportData.analysis.footType}`, 20, yPos);
+            doc.text(`Arch Type: ${reportData.analysis.archType}`, 20, yPos + 15);
+            doc.text(`Description: ${reportData.analysis.description}`, 20, yPos + 30);
+            yPos += 50;
+            
+            // 추천 사항
+            doc.setFontSize(16);
+            doc.text('Recommendations', 20, yPos);
+            yPos += 20;
+            
+            doc.setFontSize(10);
+            reportData.recommendations.forEach(rec => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(`• ${rec}`, 20, yPos);
+                yPos += 12;
+            });
+            
+            // PDF 저장
+            const fileName = `foot_analysis_mobile_${new Date().toISOString().slice(0, 10)}.pdf`;
+            doc.save(fileName);
+        }
+
+        function shareReport() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '3D 발 분석 리포트',
+                    text: '내 발의 정밀 측정 결과를 확인해보세요!',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                // 폴백: URL 복사
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('리포트 링크가 클립보드에 복사되었습니다!');
+                }).catch(() => {
+                    // 클립보드 API가 지원되지 않는 경우
+                    const textArea = document.createElement('textarea');
+                    textArea.value = window.location.href;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('리포트 링크가 클립보드에 복사되었습니다!');
+                });
+            }
+        }
+
+        // 인쇄 최적화
+        window.addEventListener('beforeprint', () => {
+            document.body.classList.add('print-mode');
+        });
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('print-mode');
+        });
+
+        // PWA 관련 기능
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(registrationError => console.log('SW registration failed'));
+            });
+        }
+
+        // 다크모드 지원
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+</body>
+</html> 

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 발 분석 대시보드 (정밀 측정)</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter) 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- 커스텀 CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-gray-900 text-white">
+
+    <!-- 파일 로드 전 UI -->
+    <div id="welcome-screen" class="w-screen h-screen flex items-center justify-center p-8">
+        <div id="drop-zone" class="w-full h-full flex items-center justify-center">
+            <div class="text-center bg-gray-800 bg-opacity-80 p-10 rounded-2xl shadow-lg max-w-lg pointer-events-auto">
+                <h1 class="mt-4 text-2xl font-bold">3D 발 분석기</h1>
+                <p class="mt-2 text-gray-300">여기에 `.ply` 파일을 끌어다 놓거나, 아래 버튼을 눌러 분석을 시작하세요.</p>
+                <button id="file-select-button"
+                    class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">파일
+                    선택하기</button>
+                <input type="file" id="file-input" class="hidden" accept=".ply">
+            </div>
+        </div>
+    </div>
+
+    <!-- 파일 로드 후 분석 대시보드 UI -->
+    <div id="dashboard-screen" class="hidden w-screen h-screen flex">
+        <!-- 왼쪽: 3D 뷰어 -->
+        <div class="w-3/5 h-full relative">
+            <div id="canvas-container"></div>
+            <div id="control-panel"
+                class="absolute top-4 left-4 z-10 bg-gray-800 bg-opacity-80 p-4 rounded-lg shadow-lg pointer-events-auto space-y-4 w-64">
+                <div>
+                    <h3 class="font-bold text-lg">뷰어 제어</h3>
+                    <p id="model-filename" class="text-sm text-gray-400 truncate" title="로드된 파일 이름"></p>
+                </div>
+                <div class="space-y-2">
+                    <h4 class="font-semibold text-md">보기 옵션</h4>
+                    <div id="view-options" class="grid grid-cols-3 gap-2">
+                        <button data-view="mesh"
+                            class="view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">면</button>
+                        <button data-view="points"
+                            class="view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">점</button>
+                        <button data-view="wireframe"
+                            class="view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">선</button>
+                    </div>
+                </div>
+                <div class="space-y-3 pt-2 border-t border-gray-700">
+                    <h4 class="font-semibold text-md">환경 설정</h4>
+                    <div class="flex items-center justify-between">
+                        <label class="text-sm font-medium text-gray-300">카메라 모드</label>
+                        <div class="flex rounded-md shadow-sm" role="group">
+                            <button type="button" id="perspective-cam-btn"
+                                class="camera-btn px-3 py-1 text-sm font-medium text-white bg-blue-600 border border-gray-600 rounded-l-lg hover:bg-blue-500">원근</button>
+                            <button type="button" id="ortho-cam-btn"
+                                class="camera-btn px-3 py-1 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-r-lg hover:bg-gray-600">직교</button>
+                        </div>
+                    </div>
+                    <div id="standard-views-container" class="hidden pt-2">
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="view-top-btn"
+                                class="standard-view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-2 text-sm rounded-md transition-colors duration-200">윗면</button>
+                            <button id="view-front-btn"
+                                class="standard-view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-2 text-sm rounded-md transition-colors duration-200">정면</button>
+                            <button id="view-side-btn"
+                                class="standard-view-btn w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-2 text-sm rounded-md transition-colors duration-200">측면</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="model-color-picker" class="text-sm font-medium text-gray-300">모델 색상</label>
+                        <input type="color" id="model-color-picker" value="#cccccc">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="grid-toggle-btn" class="text-sm font-medium text-gray-300">바닥 그리드</label>
+                        <button id="grid-toggle-btn"
+                            class="w-16 text-sm bg-gray-700 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">끄기</button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="bbox-toggle-btn" class="text-sm font-medium text-gray-300">경계 상자</label>
+                        <button id="bbox-toggle-btn"
+                            class="w-16 text-sm bg-gray-700 hover:bg-gray-600 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">끄기</button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="measurement-toggle-btn" class="text-sm font-medium text-gray-300">측정선</label>
+                        <button id="measurement-toggle-btn"
+                            class="w-16 text-sm bg-green-600 hover:bg-green-500 text-white font-semibold py-1 px-3 rounded-full transition-colors duration-200">켜기</button>
+                    </div>
+                </div>
+                <div class="space-y-2 pt-3 border-t border-gray-700">
+                    <button id="reset-view-btn"
+                        class="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">시점
+                        초기화</button>
+                    <button id="capture-btn"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">화면
+                        캡처</button>
+                    <button id="open-new-model-btn"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">새
+                        모델 열기</button>
+                    <button id="download-report-btn"
+                        class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">📄
+                        리포트 다운로드</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽: 분석 리포트 -->
+        <div class="w-2/5 h-full bg-gray-800 p-6 overflow-y-auto">
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-300">발 분석 리포트</h2>
+                    <p id="report-filename" class="text-sm text-gray-400 mt-1"></p>
+                </div>
+                <div class="bg-gray-900 p-5 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-4">정밀 측정 데이터</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-300">👣 발 길이 (족장)</span>
+                            <div class="text-right">
+                                <span id="length-value" class="font-semibold text-green-400">분석 중...</span>
+                                <button data-measure="length"
+                                    class="measure-view-btn ml-2 text-xs bg-blue-800 hover:bg-blue-700 px-2 py-1 rounded">보기</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-6">
+                            <span id="length-method">• 측정 방식: 발뒤꿈치 → 최장 발가락</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-300">↔️ 발볼 너비 (족폭)</span>
+                            <div class="text-right">
+                                <span id="width-value" class="font-semibold text-yellow-400">분석 중...</span>
+                                <button data-measure="width"
+                                    class="measure-view-btn ml-2 text-xs bg-blue-800 hover:bg-blue-700 px-2 py-1 rounded">보기</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-6">
+                            <span id="width-method">• 측정 방식: 1/5 발가락뼈 최대폭</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-gray-300">↕️ 발등 높이</span>
+                            <div class="text-right">
+                                <span id="height-value" class="font-semibold text-purple-400">분석 중...</span>
+                                <button data-measure="height"
+                                    class="measure-view-btn ml-2 text-xs bg-blue-800 hover:bg-blue-700 px-2 py-1 rounded">보기</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 ml-6">
+                            <span id="height-method">• 측정 방식: 발바닥 → 발등 최고점</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-700">
+                        <div class="text-xs text-gray-400 space-y-1">
+                            <div>📊 <span id="analysis-status">측정 정확도 분석 중...</span></div>
+                            <div>🎯 <span id="confidence-score">신뢰도: 계산 중...</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-900 p-5 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-3">발 유형 종합 분석</h3>
+                    <div id="foot-analysis" class="text-sm leading-relaxed text-gray-300 mb-4">
+                        <div class="animate-pulse">분석 중입니다...</div>
+                    </div>
+                    <h4 class="text-md font-semibold mb-2">측정 비율 분석</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>길이/너비 비율:</span>
+                            <span id="length-width-ratio" class="font-mono">-.-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>높이/길이 비율:</span>
+                            <span id="height-length-ratio" class="font-mono">-.-</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- QR 코드 및 모바일 다운로드 섹션 -->
+                <div class="bg-gray-900 p-5 rounded-xl">
+                    <h3 class="text-lg font-semibold mb-3">📱 모바일 다운로드</h3>
+                    <div class="text-center">
+                        <div id="qr-code-container" class="bg-white p-4 rounded-lg inline-block mb-3">
+                            <div id="qr-code" class="w-32 h-32 flex items-center justify-center text-gray-500 text-sm">
+                                QR 코드 생성 중...
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-400">QR 코드를 스캔하여 모바일로 리포트를 다운로드하세요</p>
+                        <button id="generate-qr-btn"
+                            class="mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200">QR
+                            코드 생성</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script src="./qrcode.min.js"></script>
+
+    <!-- jsPDF 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+            }
+        }
+    </script>
+
+
+    <!-- 메인 JavaScript -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
+
+
+
+<!-- https://davidshimjs.github.io/qrcodejs/ -->
