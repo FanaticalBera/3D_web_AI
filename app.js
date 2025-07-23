@@ -722,7 +722,10 @@ function generateQRCode() {
   const encodedData = btoa(unescape(encodeURIComponent(jsonData)));
 
   // 5) 모바일 리포트 URL (파일명 맞추기!)
-  const viewerURL = `${location.origin}/mobile-report.html?data=${encodedData}`;
+//   const viewerURL = `${location.origin}/mobile-report.html?data=${encodedData}`;
+  const ipAddress = '192.168.00.00'; // 1단계에서 확인한 IP 주소를 여기에 입력하세요.
+  const port = '5500'; // VS Code Live Server의 기본 포트입니다. 다른 경우 수정하세요.
+  const viewerURL = `http://${ipAddress}:${port}/mobile-report.html?data=${encodedData}`;
   console.log('🔗 생성된 URL:', viewerURL);
 
   // 6) QR 컨테이너 초기화 & 생성
